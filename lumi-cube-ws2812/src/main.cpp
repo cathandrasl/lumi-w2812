@@ -39,10 +39,10 @@ String formatTime();
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("LUMI Cube - Large Font Display");
+  Serial.println("LUMI Cube - Landscape Display");
   
   tft.init();
-  tft.setRotation(0);
+  tft.setRotation(1);  // Landscape mode (280x240)
   tft.fillScreen(TFT_BLACK);
   
   stateChangeTime = millis();
@@ -62,7 +62,7 @@ void loop() {
     }
   }
   
-  // Demo: cycle through states every 6 seconds (longer for readability)
+  // Demo: cycle through states every 6 seconds
   if(millis() - stateChangeTime > 6000) {
     do {
       currentState = (DisplayState)((currentState + 1) % 6);
@@ -106,167 +106,168 @@ void showBootScreen() {
   
   tft.fillScreen(TFT_BLACK);
   
-  // Large LUMI logo
+  // Large LUMI logo - centered in landscape
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(6);  // Very large
-  tft.drawString("LUMI", 120, 80);
+  tft.setTextSize(6);
+  tft.drawString("LUMI", 140, 80);  // Centered at 280/2 = 140
   
-  // Progress bar
+  // Progress bar - wider for landscape
   drawProgressBar(bootProgress);
   
   // Large percentage
   tft.setTextColor(TFT_RED, TFT_BLACK);
   tft.setTextSize(4);
-  tft.drawString(String(bootProgress) + "%", 120, 220);
+  tft.drawString(String(bootProgress) + "%", 140, 180);
 }
 
 void showDefaultDisplay() {
   tft.fillScreen(TFT_WHITE);
   
-  // Large LUMI header
-  tft.fillRect(0, 0, 240, 60, TFT_BLACK);
+  // Left side - LUMI and time
+  tft.fillRect(0, 0, 140, 240, TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
   tft.setTextSize(4);
-  tft.drawString("LUMI", 120, 30);
+  tft.drawString("LUMI", 70, 60);
   
-  // Large time display
+  // Large time
+  tft.setTextSize(3);
+  tft.drawString(formatTime(), 70, 120);
+  
+  // Status
+  tft.setTextSize(2);
+  tft.drawString(tableStatus, 70, 180);
+  
+  // Right side - Table info
   tft.setTextColor(TFT_BLACK, TFT_WHITE);
-  tft.setTextSize(5);
-  tft.drawString(formatTime(), 120, 80);
+  tft.setTextSize(3);
+  tft.drawString("TABLE", 210, 60);
   
-  // Large table number
-  tft.setTextSize(6);
-  tft.drawString("TABLE", 120, 130);
+  // Huge table number
   tft.setTextColor(TFT_RED, TFT_WHITE);
   tft.setTextSize(8);
-  tft.drawString(String(tableNumber), 120, 170);
+  tft.drawString(String(tableNumber), 210, 120);
   
-  // Footer
-  tft.fillRect(0, 220, 240, 60, TFT_BLACK);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  // Instructions at bottom
+  tft.fillRect(0, 200, 280, 40, TFT_RED);
+  tft.setTextColor(TFT_WHITE, TFT_RED);
   tft.setTextSize(2);
-  tft.drawString("PRESS BUTTON", 120, 240);
-  tft.drawString("FOR SERVICE", 120, 260);
+  tft.drawString("PRESS BUTTON FOR SERVICE", 140, 220);
 }
 
 void showQRMenu() {
   tft.fillScreen(TFT_WHITE);
   
-  // Large header
-  tft.fillRect(0, 0, 240, 50, TFT_BLACK);
+  // Left side - QR Code
+  String menuURL = "https://lumi.restaurant/menu/table" + String(tableNumber);
+  drawQRCode(menuURL, 70, 120, 4);
+  
+  // Right side - Info
+  tft.fillRect(140, 0, 140, 240, TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
+  tft.setTextSize(4);
+  tft.drawString("MENU", 210, 50);
+  
   tft.setTextSize(3);
-  tft.drawString("MENU", 120, 25);
+  tft.drawString("SCAN", 210, 100);
+  tft.drawString("WITH", 210, 130);
+  tft.drawString("PHONE", 210, 160);
   
-  // QR Code for menu - larger
-  String menuURL = "https://lumi.restaurant/menu/table" + String(tableNumber);
-  drawQRCode(menuURL, 120, 120, 4);  // Bigger QR code
-  
-  // Large instructions
-  tft.setTextColor(TFT_BLACK, TFT_WHITE);
-  tft.setTextSize(3);
-  tft.drawString("SCAN", 120, 180);
-  tft.drawString("WITH PHONE", 120, 200);
-  
-  // Footer
-  tft.fillRect(0, 230, 240, 50, TFT_RED);
-  tft.setTextColor(TFT_WHITE, TFT_RED);
+  // Table number
+  tft.setTextColor(TFT_RED, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("TABLE " + String(tableNumber), 120, 255);
+  tft.drawString("TABLE " + String(tableNumber), 210, 200);
 }
 
 void showQRPayment() {
   tft.fillScreen(TFT_BLACK);
   
-  // Large payment header
+  // Left side - Amount and QR
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
   tft.setTextSize(3);
-  tft.drawString("PAY", 120, 25);
+  tft.drawString("PAY", 70, 30);
   
-  // Large amount
   tft.setTextColor(TFT_RED, TFT_BLACK);
-  tft.setTextSize(6);
-  tft.drawString("$42.50", 120, 60);
+  tft.setTextSize(4);
+  tft.drawString("$42.50", 70, 60);
   
-  // Large QR Code for payment
+  // QR Code
   String paymentURL = "https://pay.lumi.restaurant/table" + String(tableNumber) + "/amount/4250";
-  drawQRCode(paymentURL, 120, 140, 4);
+  drawQRCode(paymentURL, 70, 150, 3);
   
-  // Large scan instruction
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  // Right side - Instructions
+  tft.fillRect(140, 0, 140, 240, TFT_WHITE);
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
   tft.setTextSize(3);
-  tft.drawString("SCAN TO PAY", 120, 200);
+  tft.drawString("SCAN", 210, 60);
+  tft.drawString("TO", 210, 90);
+  tft.drawString("PAY", 210, 120);
   
-  // Footer
-  tft.fillRect(0, 230, 240, 50, TFT_RED);
-  tft.setTextColor(TFT_WHITE, TFT_RED);
   tft.setTextSize(2);
-  tft.drawString("SECURE PAYMENT", 120, 255);
+  tft.drawString("SECURE", 210, 160);
+  tft.drawString("PAYMENT", 210, 180);
 }
 
 void showServiceScreen() {
   tft.fillScreen(TFT_BLACK);
   
-  // Large service header
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(4);
-  tft.drawString("SERVICE", 120, 40);
-  
-  // Large service indicator
-  tft.fillCircle(120, 110, 50, TFT_WHITE);
-  tft.fillCircle(120, 110, 45, TFT_BLACK);
+  // Left side - Service symbol
+  tft.fillCircle(70, 120, 60, TFT_WHITE);
+  tft.fillCircle(70, 120, 55, TFT_BLACK);
   tft.setTextColor(TFT_RED, TFT_BLACK);
-  tft.setTextSize(6);
-  tft.drawString("S", 120, 110);
+  tft.setTextDatum(MC_DATUM);
+  tft.setTextSize(8);
+  tft.drawString("S", 70, 120);
   
-  // Large status message
+  // Right side - Message
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextSize(3);
-  tft.drawString("WAITER", 120, 170);
-  tft.drawString("COMING", 120, 200);
+  tft.setTextSize(4);
+  tft.drawString("SERVICE", 210, 80);
   
-  // Footer
-  tft.fillRect(0, 230, 240, 50, TFT_RED);
-  tft.setTextColor(TFT_WHITE, TFT_RED);
+  tft.setTextSize(3);
+  tft.drawString("WAITER", 210, 120);
+  tft.drawString("COMING", 210, 150);
+  
+  // Table number
+  tft.setTextColor(TFT_RED, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("TABLE " + String(tableNumber), 120, 255);
+  tft.drawString("TABLE " + String(tableNumber), 210, 190);
 }
 
 void showBillScreen() {
   tft.fillScreen(TFT_WHITE);
   
-  // Large bill header
-  tft.fillRect(0, 0, 240, 50, TFT_BLACK);
+  // Left side - Amount
+  tft.fillRect(0, 0, 140, 240, TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(4);
-  tft.drawString("BILL", 120, 25);
-  
-  // Large amount
-  tft.setTextColor(TFT_BLACK, TFT_WHITE);
-  tft.setTextSize(6);
-  tft.drawString("$42.50", 120, 70);
-  
-  // Large QR Code for bill
-  String billURL = "https://pay.lumi.restaurant/bill/table" + String(tableNumber);
-  drawQRCode(billURL, 120, 140, 4);
-  
-  // Large instruction
-  tft.setTextColor(TFT_BLACK, TFT_WHITE);
   tft.setTextSize(3);
-  tft.drawString("SCAN TO", 120, 190);
-  tft.drawString("VIEW & PAY", 120, 210);
+  tft.drawString("BILL", 70, 50);
+  
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.setTextSize(5);
+  tft.drawString("$42.50", 70, 120);
+  
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("TABLE " + String(tableNumber), 70, 180);
+  
+  // Right side - QR Code
+  String billURL = "https://pay.lumi.restaurant/bill/table" + String(tableNumber);
+  drawQRCode(billURL, 210, 80, 3);
+  
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.setTextSize(2);
+  tft.drawString("SCAN TO", 210, 140);
+  tft.drawString("VIEW & PAY", 210, 160);
   
   // Footer
-  tft.fillRect(0, 240, 240, 40, TFT_RED);
+  tft.fillRect(140, 200, 140, 40, TFT_RED);
   tft.setTextColor(TFT_WHITE, TFT_RED);
-  tft.setTextSize(2);
-  tft.drawString("TABLE " + String(tableNumber), 120, 260);
+  tft.drawString("FAST PAYMENT", 210, 220);
 }
 
 void drawQRCode(String data, int x, int y, int scale) {
@@ -280,7 +281,7 @@ void drawQRCode(String data, int x, int y, int scale) {
   int startX = x - (qrSize / 2);
   int startY = y - (qrSize / 2);
   
-  // Draw QR code with larger pixels
+  // Draw QR code
   for (int y = 0; y < qrcode.size; y++) {
     for (int x = 0; x < qrcode.size; x++) {
       uint16_t color = qrcode_getModule(&qrcode, x, y) ? TFT_BLACK : TFT_WHITE;
@@ -288,15 +289,15 @@ void drawQRCode(String data, int x, int y, int scale) {
     }
   }
   
-  Serial.println("Large QR Code generated for: " + data);
+  Serial.println("Landscape QR Code generated for: " + data);
 }
 
 void drawProgressBar(int progress) {
-  // Larger progress bar
-  tft.fillRect(20, 160, 200, 25, TFT_WHITE);
+  // Wider progress bar for landscape
+  tft.fillRect(40, 140, 200, 20, TFT_WHITE);
   int fillWidth = map(progress, 0, 100, 0, 200);
-  tft.fillRect(20, 160, fillWidth, 25, TFT_RED);
-  tft.drawRect(20, 160, 200, 25, TFT_BLACK);
+  tft.fillRect(40, 140, fillWidth, 20, TFT_RED);
+  tft.drawRect(40, 140, 200, 20, TFT_BLACK);
 }
 
 String formatTime() {
