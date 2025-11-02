@@ -5,7 +5,7 @@ TFT_eSPI tft = TFT_eSPI();
 
 // Restaurant display states
 enum DisplayState {
-  WELCOME,
+  BOOT,
   READY_FOR_SERVICE,
   TAKING_ORDER,
   ORDER_CONFIRMED,
@@ -13,52 +13,65 @@ enum DisplayState {
   THANK_YOU
 };
 
-DisplayState currentState = WELCOME;
-DisplayState lastState = THANK_YOU;  // Different from current to force first draw
+DisplayState currentState = BOOT;
+DisplayState lastState = THANK_YOU;
 unsigned long stateChangeTime = 0;
-unsigned long lastAnimationUpdate = 0;
+unsigned long bootStartTime = 0;
 int tableNumber = 12;
-String restaurantName = "LUMI BISTRO";
+int bootProgress = 0;
 
 // FUNCTION DECLARATIONS
-void showWelcomeDisplay();
+void showBootScreen();
 void showReadyDisplay();
 void showOrderDisplay();
 void showConfirmDisplay();
 void showBillDisplay();
 void showThankYouDisplay();
-void drawHeader();
-void drawStatusBar(String status, uint16_t color);
-void updateAnimations();
+void drawSimpleLogo();
+void drawProgressBar(int progress);
+void drawCheckmark(int x, int y, int size);
+void drawXmark(int x, int y, int size);
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Restaurant Cube Display Demo - No Flicker");
+  Serial.println("LUMI Cube - Clean B&W&Red Design");
   
   tft.init();
   tft.setRotation(0);
   tft.fillScreen(TFT_BLACK);
   
   stateChangeTime = millis();
+  bootStartTime = millis();
 }
 
 void loop() {
-  // Check if we need to change state
+  // Handle boot sequence first
+  if(currentState == BOOT) {
+    if(millis() - bootStartTime < 6000) {  // 6 second boot
+      bootProgress = map(millis() - bootStartTime, 0, 6000, 0, 100);
+      showBootScreen();
+      delay(100);
+      return;
+    } else {
+      currentState = READY_FOR_SERVICE;
+    }
+  }
+  
+  // Normal state cycling after boot
   if(millis() - stateChangeTime > 4000) {
-    currentState = (DisplayState)((currentState + 1) % 6);
+    // Skip BOOT in normal cycling
+    do {
+      currentState = (DisplayState)((currentState + 1) % 6);
+    } while(currentState == BOOT);
+    
     stateChangeTime = millis();
-    Serial.print("Display state changed to: ");
+    Serial.print("Display state: ");
     Serial.println(currentState);
   }
   
-  // Only redraw screen when state actually changes
+  // Only redraw when state changes
   if(currentState != lastState) {
-    Serial.println("Redrawing screen...");
-    
     switch(currentState) {
-      case WELCOME:
-        showWelcomeDisplay();
-        break;
       case READY_FOR_SERVICE:
         showReadyDisplay();
         break;
@@ -75,245 +88,284 @@ void loop() {
         showThankYouDisplay();
         break;
     }
-    
     lastState = currentState;
   }
   
-  // Handle subtle animations without full screen redraw
-  updateAnimations();
-  
-  delay(200);  // Longer delay since we're not constantly redrawing
+  delay(200);
 }
 
-void updateAnimations() {
-  // Only update animations every 500ms to avoid flicker
-  if(millis() - lastAnimationUpdate < 500) {
-    return;
-  }
+void showBootScreen() {
+  static int lastProgress = -1;
   
-  lastAnimationUpdate = millis();
+  // Only redraw if progress changed
+  if(bootProgress == lastProgress) return;
+  lastProgress = bootProgress;
   
-  // Minimal animations that don't cause flicker
-  if(currentState == TAKING_ORDER) {
-    // Just update a small part for pulse effect
-    static bool pulse = false;
-    pulse = !pulse;
-    
-    uint16_t color = pulse ? TFT_WHITE : TFT_CYAN;
-    tft.fillCircle(120, 110, 20, TFT_PURPLE);  // Clear previous
-    tft.fillCircle(120, 110, pulse ? 18 : 15, color);
-    tft.setTextColor(TFT_PURPLE, color);
-    tft.setTextDatum(MC_DATUM);
-    tft.setTextSize(1);
-    tft.drawString("MIC", 120, 110);
-  }
-}
-
-// FUNCTION IMPLEMENTATIONS (Same as before but called less frequently)
-void showWelcomeDisplay() {
   tft.fillScreen(TFT_BLACK);
   
-  // Header with restaurant branding
-  tft.fillRoundRect(10, 20, 220, 80, 15, TFT_NAVY);
+  // LUMI Logo
+  drawSimpleLogo();
   
-  // Restaurant logo/name
-  tft.setTextColor(TFT_WHITE, TFT_NAVY);
-  tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(3);
-  tft.drawString("LUMI", 120, 45);
-  
-  tft.setTextSize(2);
-  tft.drawString("BISTRO", 120, 75);
-  
-  // Welcome message
-  tft.setTextColor(TFT_CYAN, TFT_BLACK);
-  tft.setTextSize(3);
-  tft.drawString("Welcome!", 120, 130);
-  
-  // Table number
+  // Boot text
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextSize(4);
-  tft.drawString("Table " + String(tableNumber), 120, 170);
+  tft.setTextDatum(MC_DATUM);
+  tft.setTextSize(2);
+  tft.drawString("LUMI CUBE", 120, 100);
   
-  // Instruction
-  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextSize(1);
-  tft.drawString("Your smart dining assistant", 120, 210);
+  tft.drawString("Restaurant Service System", 120, 130);
   
-  drawStatusBar("INITIALIZING", TFT_BLUE);
+  // Progress bar
+  drawProgressBar(bootProgress);
+  
+  // Boot status text
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(1);
+  
+  if(bootProgress < 20) {
+    tft.drawString("Initializing hardware...", 120, 200);
+  } else if(bootProgress < 40) {
+    tft.drawString("Connecting to network...", 120, 200);
+  } else if(bootProgress < 60) {
+    tft.drawString("Loading restaurant data...", 120, 200);
+  } else if(bootProgress < 80) {
+    tft.drawString("Configuring table settings...", 120, 200);
+  } else {
+    tft.drawString("Ready for service!", 120, 200);
+  }
+  
+  // Progress percentage
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.drawString(String(bootProgress) + "%", 120, 220);
 }
 
 void showReadyDisplay() {
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(TFT_WHITE);
   
-  drawHeader();
-  
-  // Main ready message
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
-  tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(4);
-  tft.drawString("READY", 120, 80);
-  
-  // Service options visual
+  // Header
+  tft.fillRect(0, 0, 240, 50, TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextDatum(MC_DATUM);
   tft.setTextSize(2);
-  tft.drawString("Available Services:", 120, 120);
+  tft.drawString("LUMI", 120, 25);
   
-  // Service options
+  // Table number
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.setTextSize(4);
+  tft.drawString("TABLE " + String(tableNumber), 120, 90);
+  
+  // Status
+  tft.setTextColor(TFT_RED, TFT_WHITE);
+  tft.setTextSize(3);
+  tft.drawString("READY", 120, 140);
+  
+  // Instructions
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
   tft.setTextSize(1);
-  tft.setTextColor(TFT_CYAN, TFT_BLACK);
-  tft.drawString("- Order Food", 120, 150);
-  tft.drawString("- Call Waiter", 120, 170);
-  tft.drawString("- Request Bill", 120, 190);
-  tft.drawString("- Get Help", 120, 210);
+  tft.drawString("Touch screen or press button", 120, 180);
+  tft.drawString("for service", 120, 200);
   
-  drawStatusBar("TOUCH TO START", TFT_GREEN);
+  // Simple service icons
+  tft.fillRect(0, 230, 240, 50, TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(1);
+  tft.drawString("SERVICE | ORDER | BILL | HELP", 120, 255);
 }
 
 void showOrderDisplay() {
-  tft.fillScreen(TFT_PURPLE);
+  tft.fillScreen(TFT_BLACK);
   
-  drawHeader();
-  
-  // Voice/order taking (static elements)
-  tft.setTextColor(TFT_WHITE, TFT_PURPLE);
+  // Header
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(3);
-  tft.drawString("LISTENING", 120, 70);
+  tft.setTextSize(2);
+  tft.drawString("VOICE ORDER", 120, 40);
   
-  // Initial microphone
-  tft.fillCircle(120, 110, 15, TFT_CYAN);
-  tft.setTextColor(TFT_PURPLE, TFT_CYAN);
+  // Microphone graphic (simple circles)
+  tft.fillCircle(120, 100, 30, TFT_WHITE);
+  tft.fillCircle(120, 100, 25, TFT_BLACK);
+  tft.fillCircle(120, 100, 15, TFT_RED);
+  
+  // Sound waves
+  tft.drawCircle(120, 100, 40, TFT_WHITE);
+  tft.drawCircle(120, 100, 50, TFT_WHITE);
+  tft.drawCircle(120, 100, 60, TFT_WHITE);
+  
+  // Status
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("LISTENING", 120, 170);
+  
+  // Sample text
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
-  tft.drawString("MIC", 120, 110);
+  tft.drawString("Speak your order clearly", 120, 200);
   
-  // Sample order text
-  tft.setTextColor(TFT_WHITE, TFT_PURPLE);
-  tft.setTextSize(1);
-  tft.drawString("Two Caesar salads and", 120, 150);
-  tft.drawString("one grilled salmon please", 120, 170);
-  
-  // Processing indicator
-  tft.setTextColor(TFT_YELLOW, TFT_PURPLE);
-  tft.drawString("Processing your order...", 120, 200);
-  
-  drawStatusBar("VOICE ORDER ACTIVE", TFT_MAGENTA);
+  // Footer
+  tft.fillRect(0, 230, 240, 50, TFT_RED);
+  tft.setTextColor(TFT_WHITE, TFT_RED);
+  tft.drawString("RECORDING", 120, 255);
 }
 
 void showConfirmDisplay() {
-  tft.fillScreen(TFT_DARKGREEN);
+  tft.fillScreen(TFT_WHITE);
   
-  drawHeader();
-  
-  // Confirmation message
-  tft.setTextColor(TFT_WHITE, TFT_DARKGREEN);
+  // Header
+  tft.fillRect(0, 0, 240, 50, TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(3);
-  tft.drawString("ORDER", 120, 70);
-  tft.drawString("CONFIRMED", 120, 100);
+  tft.setTextSize(2);
+  tft.drawString("ORDER STATUS", 120, 25);
   
-  // Checkmark
-  tft.fillCircle(120, 140, 25, TFT_WHITE);
-  tft.setTextColor(TFT_DARKGREEN, TFT_WHITE);
+  // Large checkmark
+  drawCheckmark(120, 110, 40);
+  
+  // Confirmation text
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
   tft.setTextSize(3);
-  tft.drawString("OK", 120, 140);
+  tft.drawString("CONFIRMED", 120, 160);
   
   // Order details
-  tft.setTextColor(TFT_LIGHTGREY, TFT_DARKGREEN);
   tft.setTextSize(1);
-  tft.drawString("2x Caesar Salad", 120, 180);
-  tft.drawString("1x Grilled Salmon", 120, 195);
+  tft.drawString("2x Caesar Salad", 120, 190);
+  tft.drawString("1x Grilled Salmon", 120, 205);
   
-  tft.setTextColor(TFT_YELLOW, TFT_DARKGREEN);
-  tft.drawString("Estimated time: 15-20 min", 120, 215);
+  // Time estimate
+  tft.setTextColor(TFT_RED, TFT_WHITE);
+  tft.setTextSize(2);
+  tft.drawString("15-20 MIN", 120, 230);
   
-  drawStatusBar("SENT TO KITCHEN", TFT_GREEN);
+  // Footer
+  tft.fillRect(0, 250, 240, 30, TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(1);
+  tft.drawString("SENT TO KITCHEN", 120, 265);
 }
 
 void showBillDisplay() {
-  tft.fillScreen(TFT_BLUE);
+  tft.fillScreen(TFT_BLACK);
   
-  drawHeader();
-  
-  // Bill ready message
-  tft.setTextColor(TFT_WHITE, TFT_BLUE);
+  // Header
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(3);
-  tft.drawString("BILL READY", 120, 70);
+  tft.setTextSize(2);
+  tft.drawString("PAYMENT", 120, 30);
   
-  // Amount
+  // Amount box
+  tft.fillRect(20, 70, 200, 80, TFT_WHITE);
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
   tft.setTextSize(5);
-  tft.setTextColor(TFT_YELLOW, TFT_BLUE);
-  tft.drawString("$42.50", 120, 120);
+  tft.drawString("$42.50", 120, 110);
   
-  // Payment options
-  tft.setTextColor(TFT_WHITE, TFT_BLUE);
+  // Payment methods
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
-  tft.drawString("Payment Options:", 120, 170);
-  tft.drawString("Card - Cash - Mobile", 120, 190);
+  tft.drawString("PAYMENT OPTIONS", 120, 170);
   
-  tft.setTextColor(TFT_CYAN, TFT_BLUE);
-  tft.drawString("Tap to pay or call waiter", 120, 210);
+  // Simple payment icons (rectangles)
+  tft.fillRect(30, 190, 50, 30, TFT_RED);
+  tft.setTextColor(TFT_WHITE, TFT_RED);
+  tft.setTextSize(1);
+  tft.drawString("CARD", 55, 205);
   
-  drawStatusBar("PAYMENT READY", TFT_NAVY);
+  tft.fillRect(95, 190, 50, 30, TFT_WHITE);
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.drawString("CASH", 120, 205);
+  
+  tft.fillRect(160, 190, 50, 30, TFT_RED);
+  tft.setTextColor(TFT_WHITE, TFT_RED);
+  tft.drawString("MOBILE", 185, 205);
+  
+  // Footer
+  tft.fillRect(0, 250, 240, 30, TFT_WHITE);
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.drawString("TAP TO PAY", 120, 265);
 }
 
 void showThankYouDisplay() {
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(TFT_WHITE);
   
-  drawHeader();
-  
-  // Thank you message (static - no animation to avoid flicker)
-  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+  // Header
+  tft.fillRect(0, 0, 240, 50, TFT_RED);
+  tft.setTextColor(TFT_WHITE, TFT_RED);
   tft.setTextDatum(MC_DATUM);
-  tft.setTextSize(4);
-  tft.drawString("THANK", 120, 80);
-  tft.drawString("YOU!", 120, 120);
-  
-  // Static stars
-  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("*", 80, 60);
-  tft.drawString("*", 160, 60);
-  tft.drawString("*", 120, 160);
+  tft.drawString("THANK YOU", 120, 25);
   
-  // Feedback request
+  // Large text
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.setTextSize(4);
+  tft.drawString("VISIT", 120, 80);
+  tft.drawString("AGAIN", 120, 120);
+  
+  // Rating stars (simple rectangles)
+  int starY = 170;
+  for(int i = 0; i < 5; i++) {
+    tft.fillRect(60 + i*24, starY, 20, 20, TFT_RED);
+    tft.setTextColor(TFT_WHITE, TFT_RED);
+    tft.setTextSize(1);
+    tft.drawString("*", 70 + i*24, starY + 10);
+  }
+  
+  tft.setTextColor(TFT_BLACK, TFT_WHITE);
+  tft.setTextSize(1);
+  tft.drawString("Rate your experience", 120, 210);
+  
+  // Footer
+  tft.fillRect(0, 240, 240, 40, TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextSize(1);
-  tft.drawString("Rate your experience:", 120, 180);
-  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-  tft.drawString("* * * * *", 120, 200);
-  
-  tft.setTextColor(TFT_CYAN, TFT_BLACK);
-  tft.drawString("Visit us again soon!", 120, 220);
-  
-  drawStatusBar("SESSION COMPLETE", TFT_DARKGREEN);
+  tft.drawString("TABLE " + String(tableNumber) + " SESSION COMPLETE", 120, 260);
 }
 
-void drawHeader() {
-  // Top header bar
-  tft.fillRect(0, 0, 240, 30, TFT_NAVY);
+void drawSimpleLogo() {
+  // Simple LUMI logo using geometric shapes
   
-  // Restaurant name
-  tft.setTextColor(TFT_WHITE, TFT_NAVY);
-  tft.setTextSize(1);
-  tft.setTextDatum(TL_DATUM);
-  tft.drawString("LUMI BISTRO", 5, 10);
+  // L
+  tft.fillRect(80, 50, 5, 25, TFT_RED);
+  tft.fillRect(80, 70, 15, 5, TFT_RED);
   
-  // Time (simulated)
-  tft.setTextDatum(TR_DATUM);
-  tft.drawString("7:45 PM", 235, 10);
+  // U
+  tft.fillRect(100, 50, 5, 20, TFT_WHITE);
+  tft.fillRect(110, 50, 5, 20, TFT_WHITE);
+  tft.fillRect(100, 70, 15, 5, TFT_WHITE);
   
-  // Table number
-  tft.setTextDatum(TC_DATUM);
-  tft.drawString("Table " + String(tableNumber), 120, 10);
+  // M
+  tft.fillRect(120, 50, 5, 25, TFT_RED);
+  tft.fillRect(135, 50, 5, 25, TFT_RED);
+  tft.fillRect(125, 55, 5, 10, TFT_RED);
+  
+  // I
+  tft.fillRect(145, 50, 5, 25, TFT_WHITE);
 }
 
-void drawStatusBar(String status, uint16_t color) {
-  // Bottom status bar
-  tft.fillRect(0, 250, 240, 30, color);
-  tft.setTextColor(TFT_WHITE, color);
-  tft.setTextSize(1);
-  tft.setTextDatum(MC_DATUM);
-  tft.drawString(status, 120, 265);
+void drawProgressBar(int progress) {
+  // Progress bar background
+  tft.fillRect(40, 160, 160, 10, TFT_WHITE);
+  
+  // Progress fill
+  int fillWidth = map(progress, 0, 100, 0, 160);
+  tft.fillRect(40, 160, fillWidth, 10, TFT_RED);
+}
+
+void drawCheckmark(int x, int y, int size) {
+  // Simple checkmark using lines
+  tft.fillCircle(x, y, size, TFT_BLACK);
+  tft.fillCircle(x, y, size-3, TFT_WHITE);
+  
+  // Checkmark lines
+  for(int i = 0; i < 3; i++) {
+    tft.drawLine(x-15+i, y+i, x-5+i, y+10+i, TFT_BLACK);
+    tft.drawLine(x-5+i, y+10+i, x+15+i, y-10+i, TFT_BLACK);
+  }
+}
+
+void drawXmark(int x, int y, int size) {
+  tft.fillCircle(x, y, size, TFT_RED);
+  tft.fillCircle(x, y, size-3, TFT_WHITE);
+  
+  // X mark lines
+  for(int i = 0; i < 3; i++) {
+    tft.drawLine(x-10+i, y-10+i, x+10+i, y+10+i, TFT_RED);
+    tft.drawLine(x-10+i, y+10+i, x+10+i, y-10+i, TFT_RED);
+  }
 }
