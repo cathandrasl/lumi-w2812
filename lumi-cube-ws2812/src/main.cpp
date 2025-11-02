@@ -14,11 +14,13 @@ enum DisplayState {
 };
 
 DisplayState currentState = WELCOME;
+DisplayState lastState = THANK_YOU;  // Different from current to force first draw
 unsigned long stateChangeTime = 0;
+unsigned long lastAnimationUpdate = 0;
 int tableNumber = 12;
 String restaurantName = "LUMI BISTRO";
 
-// FUNCTION DECLARATIONS (THIS FIXES ALL ERRORS!)
+// FUNCTION DECLARATIONS
 void showWelcomeDisplay();
 void showReadyDisplay();
 void showOrderDisplay();
@@ -27,10 +29,11 @@ void showBillDisplay();
 void showThankYouDisplay();
 void drawHeader();
 void drawStatusBar(String status, uint16_t color);
+void updateAnimations();
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Restaurant Cube Display Demo");
+  Serial.println("Restaurant Cube Display Demo - No Flicker");
   
   tft.init();
   tft.setRotation(0);
@@ -40,40 +43,73 @@ void setup() {
 }
 
 void loop() {
-  // Auto-cycle through different display states every 4 seconds
+  // Check if we need to change state
   if(millis() - stateChangeTime > 4000) {
     currentState = (DisplayState)((currentState + 1) % 6);
     stateChangeTime = millis();
-    Serial.print("Display state: ");
+    Serial.print("Display state changed to: ");
     Serial.println(currentState);
   }
   
-  // Show appropriate screen
-  switch(currentState) {
-    case WELCOME:
-      showWelcomeDisplay();
-      break;
-    case READY_FOR_SERVICE:
-      showReadyDisplay();
-      break;
-    case TAKING_ORDER:
-      showOrderDisplay();
-      break;
-    case ORDER_CONFIRMED:
-      showConfirmDisplay();
-      break;
-    case BILL_READY:
-      showBillDisplay();
-      break;
-    case THANK_YOU:
-      showThankYouDisplay();
-      break;
+  // Only redraw screen when state actually changes
+  if(currentState != lastState) {
+    Serial.println("Redrawing screen...");
+    
+    switch(currentState) {
+      case WELCOME:
+        showWelcomeDisplay();
+        break;
+      case READY_FOR_SERVICE:
+        showReadyDisplay();
+        break;
+      case TAKING_ORDER:
+        showOrderDisplay();
+        break;
+      case ORDER_CONFIRMED:
+        showConfirmDisplay();
+        break;
+      case BILL_READY:
+        showBillDisplay();
+        break;
+      case THANK_YOU:
+        showThankYouDisplay();
+        break;
+    }
+    
+    lastState = currentState;
   }
   
-  delay(100);
+  // Handle subtle animations without full screen redraw
+  updateAnimations();
+  
+  delay(200);  // Longer delay since we're not constantly redrawing
 }
 
-// FUNCTION IMPLEMENTATIONS
+void updateAnimations() {
+  // Only update animations every 500ms to avoid flicker
+  if(millis() - lastAnimationUpdate < 500) {
+    return;
+  }
+  
+  lastAnimationUpdate = millis();
+  
+  // Minimal animations that don't cause flicker
+  if(currentState == TAKING_ORDER) {
+    // Just update a small part for pulse effect
+    static bool pulse = false;
+    pulse = !pulse;
+    
+    uint16_t color = pulse ? TFT_WHITE : TFT_CYAN;
+    tft.fillCircle(120, 110, 20, TFT_PURPLE);  // Clear previous
+    tft.fillCircle(120, 110, pulse ? 18 : 15, color);
+    tft.setTextColor(TFT_PURPLE, color);
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextSize(1);
+    tft.drawString("MIC", 120, 110);
+  }
+}
+
+// FUNCTION IMPLEMENTATIONS (Same as before but called less frequently)
 void showWelcomeDisplay() {
   tft.fillScreen(TFT_BLACK);
   
@@ -123,7 +159,7 @@ void showReadyDisplay() {
   tft.setTextSize(2);
   tft.drawString("Available Services:", 120, 120);
   
-  // Service options (simplified without emojis)
+  // Service options
   tft.setTextSize(1);
   tft.setTextColor(TFT_CYAN, TFT_BLACK);
   tft.drawString("- Order Food", 120, 150);
@@ -139,21 +175,16 @@ void showOrderDisplay() {
   
   drawHeader();
   
-  // Voice/order taking animation
-  static bool pulse = false;
-  pulse = !pulse;
-  
-  uint16_t color = pulse ? TFT_WHITE : TFT_CYAN;
-  
-  tft.setTextColor(color, TFT_PURPLE);
+  // Voice/order taking (static elements)
+  tft.setTextColor(TFT_WHITE, TFT_PURPLE);
   tft.setTextDatum(MC_DATUM);
   tft.setTextSize(3);
   tft.drawString("LISTENING", 120, 70);
   
-  // Microphone animation (circle)
-  tft.fillCircle(120, 110, pulse ? 20 : 15, color);
-  tft.setTextColor(TFT_PURPLE, color);
-  tft.setTextSize(2);
+  // Initial microphone
+  tft.fillCircle(120, 110, 15, TFT_CYAN);
+  tft.setTextColor(TFT_PURPLE, TFT_CYAN);
+  tft.setTextSize(1);
   tft.drawString("MIC", 120, 110);
   
   // Sample order text
@@ -181,7 +212,7 @@ void showConfirmDisplay() {
   tft.drawString("ORDER", 120, 70);
   tft.drawString("CONFIRMED", 120, 100);
   
-  // Checkmark (circle with check)
+  // Checkmark
   tft.fillCircle(120, 140, 25, TFT_WHITE);
   tft.setTextColor(TFT_DARKGREEN, TFT_WHITE);
   tft.setTextSize(3);
@@ -224,7 +255,7 @@ void showBillDisplay() {
   tft.setTextColor(TFT_CYAN, TFT_BLUE);
   tft.drawString("Tap to pay or call waiter", 120, 210);
   
-  drawStatusBar("PAYMENT READY", TFT_NAVY);  // Fixed color
+  drawStatusBar("PAYMENT READY", TFT_NAVY);
 }
 
 void showThankYouDisplay() {
@@ -232,24 +263,19 @@ void showThankYouDisplay() {
   
   drawHeader();
   
-  // Thank you message with animation
-  static int sparkle = 0;
-  sparkle++;
-  
-  tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Changed from TFT_GOLD
+  // Thank you message (static - no animation to avoid flicker)
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
   tft.setTextDatum(MC_DATUM);
   tft.setTextSize(4);
   tft.drawString("THANK", 120, 80);
   tft.drawString("YOU!", 120, 120);
   
-  // Star animation (simple asterisks)
-  if(sparkle % 20 < 10) {
-    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-    tft.setTextSize(2);
-    tft.drawString("*", 80, 60);
-    tft.drawString("*", 160, 60);
-    tft.drawString("*", 120, 160);
-  }
+  // Static stars
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("*", 80, 60);
+  tft.drawString("*", 160, 60);
+  tft.drawString("*", 120, 160);
   
   // Feedback request
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
