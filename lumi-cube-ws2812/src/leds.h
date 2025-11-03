@@ -50,6 +50,7 @@ private:
     // Helper methods
     static uint32_t wheel(byte wheelPos);
     static void setLED(int index, uint32_t color);
+    static void flowingBlueEffect();  // 5-second flowing blue animation
 };
 
 #endif // LEDS_H

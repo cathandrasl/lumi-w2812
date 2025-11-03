@@ -99,40 +99,43 @@ void LEDs::setBatteryStatus(int level) {
 
 void LEDs::billPressed() {
     if (DEBUG_LEDS) {
-        Serial.println("[LEDS] Bill button feedback - green press, blue processing");
+        Serial.println("[LEDS] Bill button feedback - green press, blue flowing processing");
     }
     // Green flash for button press
     setButtonCluster(COLOR_GREEN);
     delay(1000);  // 1 second green
-    // Blue for processing
-    setButtonCluster(COLOR_BLUE);
-    delay(1000);  // 1 second blue
+    
+    // Blue flowing effect for 5 seconds
+    flowingBlueEffect();
+    
     setButtonCluster(COLOR_WHITE); // Return to ready state
 }
 
 void LEDs::menuPressed() {
     if (DEBUG_LEDS) {
-        Serial.println("[LEDS] Menu button feedback - green press, blue processing");
+        Serial.println("[LEDS] Menu button feedback - green press, blue flowing processing");
     }
     // Green flash for button press
     setButtonCluster(COLOR_GREEN);
     delay(1000);  // 1 second green
-    // Blue for processing
-    setButtonCluster(COLOR_BLUE);
-    delay(1000);  // 1 second blue
+    
+    // Blue flowing effect for 5 seconds
+    flowingBlueEffect();
+    
     setButtonCluster(COLOR_WHITE); // Return to ready state
 }
 
 void LEDs::servicePressed() {
     if (DEBUG_LEDS) {
-        Serial.println("[LEDS] Service button feedback - green press, blue processing");
+        Serial.println("[LEDS] Service button feedback - green press, blue flowing processing");
     }
     // Green flash for button press
     setButtonCluster(COLOR_GREEN);
     delay(1000);  // 1 second green
-    // Blue for processing
-    setButtonCluster(COLOR_BLUE);
-    delay(1000);  // 1 second blue
+    
+    // Blue flowing effect for 5 seconds
+    flowingBlueEffect();
+    
     setButtonCluster(COLOR_WHITE); // Return to ready state
 }
 
@@ -197,6 +200,39 @@ void LEDs::testSequence() {
     
     clear();
     Serial.println("[LEDS] Test complete!");
+}
+
+void LEDs::flowingBlueEffect() {
+    if (!initialized) return;
+    
+    const int cycles = 20;  // 20 cycles over 5 seconds = 250ms per cycle
+    const int delayTime = 125;  // 125ms for each step (250ms total per cycle)
+    
+    for (int cycle = 0; cycle < cycles; cycle++) {
+        // Flow left to right: LED 4 -> 5 -> 6
+        for (int i = LED_BUTTON_START; i < LED_BUTTON_START + LED_BUTTON_COUNT; i++) {
+            // Clear cluster first
+            for (int j = LED_BUTTON_START; j < LED_BUTTON_START + LED_BUTTON_COUNT; j++) {
+                strip.setPixelColor(j, COLOR_OFF);
+            }
+            // Light current LED
+            strip.setPixelColor(i, COLOR_BLUE);
+            strip.show();
+            delay(delayTime);
+        }
+        
+        // Flow right to left: LED 6 -> 5 -> 4  
+        for (int i = LED_BUTTON_START + LED_BUTTON_COUNT - 2; i >= LED_BUTTON_START; i--) {
+            // Clear cluster first
+            for (int j = LED_BUTTON_START; j < LED_BUTTON_START + LED_BUTTON_COUNT; j++) {
+                strip.setPixelColor(j, COLOR_OFF);
+            }
+            // Light current LED
+            strip.setPixelColor(i, COLOR_BLUE);
+            strip.show();
+            delay(delayTime);
+        }
+    }
 }
 
 uint32_t LEDs::wheel(byte wheelPos) {
