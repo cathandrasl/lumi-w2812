@@ -18,10 +18,12 @@ void setup() {
     Serial.println("  WiFi LED: Red (not connected)");
     Serial.println("  Button cluster: White (ready)");
     Serial.println("");
-    Serial.println("All buttons use same sequence:");
-    Serial.println("  1. GREEN (1 second) - button pressed");
+    Serial.println("Complete button feedback sequence:");
+    Serial.println("  1. BLUE (1 second) - button pressed");
     Serial.println("  2. BLUE FLOWING (5 seconds) - processing"); 
-    Serial.println("  3. WHITE - return to ready");
+    Serial.println("  3. GREEN (1 second) - successful");
+    Serial.println("  4. WHITE - return to ready");
+    Serial.println("  (RED for errors - future implementation)");
     Serial.println("Plus vibration patterns: Bill=1x, Menu=2x, Service=3x");
 }
 

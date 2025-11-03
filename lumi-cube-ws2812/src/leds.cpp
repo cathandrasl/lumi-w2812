@@ -99,42 +99,54 @@ void LEDs::setBatteryStatus(int level) {
 
 void LEDs::billPressed() {
     if (DEBUG_LEDS) {
-        Serial.println("[LEDS] Bill button feedback - green press, blue flowing processing");
+        Serial.println("[LEDS] Bill button feedback - complete sequence");
     }
-    // Green flash for button press
+    // Blue for button press
+    setButtonCluster(COLOR_BLUE);
+    delay(1000);  // 1 second blue
+    
+    // Flowing blue effect for processing (5 seconds)
+    flowingBlueEffect();
+    
+    // Green for successful completion
     setButtonCluster(COLOR_GREEN);
     delay(1000);  // 1 second green
-    
-    // Blue flowing effect for 5 seconds
-    flowingBlueEffect();
     
     setButtonCluster(COLOR_WHITE); // Return to ready state
 }
 
 void LEDs::menuPressed() {
     if (DEBUG_LEDS) {
-        Serial.println("[LEDS] Menu button feedback - green press, blue flowing processing");
+        Serial.println("[LEDS] Menu button feedback - complete sequence");
     }
-    // Green flash for button press
+    // Blue for button press
+    setButtonCluster(COLOR_BLUE);
+    delay(1000);  // 1 second blue
+    
+    // Flowing blue effect for processing (5 seconds)
+    flowingBlueEffect();
+    
+    // Green for successful completion
     setButtonCluster(COLOR_GREEN);
     delay(1000);  // 1 second green
-    
-    // Blue flowing effect for 5 seconds
-    flowingBlueEffect();
     
     setButtonCluster(COLOR_WHITE); // Return to ready state
 }
 
 void LEDs::servicePressed() {
     if (DEBUG_LEDS) {
-        Serial.println("[LEDS] Service button feedback - green press, blue flowing processing");
+        Serial.println("[LEDS] Service button feedback - complete sequence");
     }
-    // Green flash for button press
+    // Blue for button press
+    setButtonCluster(COLOR_BLUE);
+    delay(1000);  // 1 second blue
+    
+    // Flowing blue effect for processing (5 seconds)
+    flowingBlueEffect();
+    
+    // Green for successful completion
     setButtonCluster(COLOR_GREEN);
     delay(1000);  // 1 second green
-    
-    // Blue flowing effect for 5 seconds
-    flowingBlueEffect();
     
     setButtonCluster(COLOR_WHITE); // Return to ready state
 }
@@ -233,6 +245,17 @@ void LEDs::flowingBlueEffect() {
             delay(delayTime);
         }
     }
+}
+
+void LEDs::showRequestError() {
+    if (DEBUG_LEDS) {
+        Serial.println("[LEDS] Request error - red feedback");
+    }
+    // Red for error
+    setButtonCluster(COLOR_RED);
+    delay(2000);  // 2 seconds red to clearly show error
+    
+    setButtonCluster(COLOR_WHITE); // Return to ready state
 }
 
 uint32_t LEDs::wheel(byte wheelPos) {

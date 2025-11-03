@@ -32,6 +32,7 @@ public:
     static void menuPressed();
     static void servicePressed();
     static void clearButtonFeedback();
+    static void showRequestError();  // Red error feedback
     
     // Utility methods
     static void setAll(uint32_t color);
