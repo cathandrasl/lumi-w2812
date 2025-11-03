@@ -34,6 +34,9 @@ public:
     static void clearButtonFeedback();
     static void showRequestError();  // Red error feedback
     
+    // Processing animation
+    static void flowingBlueEffect();  // 5-second synchronized animation
+    
     // Utility methods
     static void setAll(uint32_t color);
     static void clear();
@@ -51,7 +54,6 @@ private:
     // Helper methods
     static uint32_t wheel(byte wheelPos);
     static void setLED(int index, uint32_t color);
-    static void flowingBlueEffect();  // 5-second flowing blue animation
 };
 
 #endif // LEDS_H
