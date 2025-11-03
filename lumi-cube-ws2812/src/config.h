@@ -72,7 +72,7 @@
 #define API_ENDPOINT        "http://192.168.1.100:8000/api/requests"
 
 // Display Settings
-#define DISPLAY_ROTATION    1       // 1 = landscape (90 degrees)
+#define DISPLAY_ROTATION    1       // 1 = landscape (280x240)
 #define BACKLIGHT_PWM       200     // 0-255
 
 // Debug Settings

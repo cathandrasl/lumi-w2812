@@ -226,22 +226,19 @@ void LEDs::flowingBlueEffect() {
             strip.setPixelColor(j, COLOR_OFF);
         }
         
-        // Create flowing effect with multiple LEDs lit
+        // Create smooth gradient flowing effect
         float position = (float)step / totalSteps * 4.0;  // 0 to 4 over the animation
         
         // Forward flow (0 to 2)
         if (position <= 2.0) {
-            int centerLED = LED_BUTTON_START + (int)position;
-            float brightness = position - (int)position;  // Fractional part
-            
-            // Light up to 3 LEDs with varying brightness
+            // Light up to 3 LEDs with gradient effect
             for (int i = 0; i < LED_BUTTON_COUNT; i++) {
                 int ledIndex = LED_BUTTON_START + i;
                 float distance = abs(i - position);
                 
-                if (distance <= 1.0) {
-                    uint8_t intensity = (uint8_t)(255 * (1.0 - distance));
-                    uint32_t color = strip.Color(0, 0, intensity);  // Blue with varying intensity
+                if (distance <= 1.5) {  // Wider gradient
+                    uint8_t intensity = (uint8_t)(255 * (1.5 - distance) / 1.5);
+                    uint32_t color = strip.Color(0, 0, intensity);  // Blue gradient
                     strip.setPixelColor(ledIndex, color);
                 }
             }
@@ -250,14 +247,14 @@ void LEDs::flowingBlueEffect() {
         else {
             float backPosition = 4.0 - position;  // 2.0 down to 0.0
             
-            // Light up to 3 LEDs with varying brightness
+            // Light up to 3 LEDs with gradient effect
             for (int i = 0; i < LED_BUTTON_COUNT; i++) {
                 int ledIndex = LED_BUTTON_START + i;
                 float distance = abs(i - backPosition);
                 
-                if (distance <= 1.0) {
-                    uint8_t intensity = (uint8_t)(255 * (1.0 - distance));
-                    uint32_t color = strip.Color(0, 0, intensity);  // Blue with varying intensity
+                if (distance <= 1.5) {  // Wider gradient
+                    uint8_t intensity = (uint8_t)(255 * (1.5 - distance) / 1.5);
+                    uint32_t color = strip.Color(0, 0, intensity);  // Blue gradient
                     strip.setPixelColor(ledIndex, color);
                 }
             }
