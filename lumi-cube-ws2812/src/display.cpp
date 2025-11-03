@@ -16,7 +16,7 @@ void Display::init() {
     initialized = true;
     
     if (DEBUG_DISPLAY) {
-        Serial.printf("[DISPLAY] Initialized %dx%d ST7789V display\n", 280, 240);
+        Serial.printf("[DISPLAY] Initialized ST7789V display\n");
     }
     
     // Show boot screen
@@ -30,12 +30,13 @@ void Display::showBootScreen() {
         Serial.println("[DISPLAY] Showing boot screen");
     }
     
-    clear();
+    tft.fillScreen(TFT_BLACK);
     
-    // Simple boot screen - red/black/white only
+    // LUMI text centered
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setTextSize(6);
-    displayCenteredText("LUMI", 120);
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextSize(8);
+    tft.drawString("LUMI", 140, 120);
     
     delay(2000);
     showReady();
@@ -48,34 +49,37 @@ void Display::showReady() {
         Serial.println("[DISPLAY] Showing ready screen");
     }
     
-    clear();  // Black background
+    tft.fillScreen(TFT_BLACK);
     
-    // Left side: Big table number
+    // Top bar
+    tft.fillRect(0, 0, 280, 60, TFT_WHITE);
+    tft.setTextColor(TFT_BLACK, TFT_WHITE);
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextSize(5);
+    tft.drawString("TABLE", 140, 30);
+    
+    // Big table number
     tft.setTextColor(TFT_RED, TFT_BLACK);
-    tft.setTextSize(10);  // Very large
+    tft.setTextSize(8);
     char tableStr[10];
     sprintf(tableStr, "%d", TABLE_NUMBER);
-    displayText(tableStr, 20, 60);
-    
-    // Right side: Status info
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setTextSize(2);
-    displayText("TABLE", 180, 50);
+    tft.drawString(tableStr, 140, 120);
     
     // Reservation status
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextSize(3);
     if (RESERVATION_STATUS) {
         tft.setTextColor(TFT_RED, TFT_BLACK);
-        displayText("RESERVED", 180, 80);
+        tft.drawString("RESERVED", 140, 170);
     } else {
-        tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        displayText("AVAILABLE", 180, 80);
+        tft.drawString("AVAILABLE", 140, 170);
     }
     
-    // Ready status at bottom
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setTextSize(3);
-    displayCenteredText("READY", 200);
+    // Bottom bar
+    tft.fillRect(0, 210, 280, 30, TFT_WHITE);
+    tft.setTextColor(TFT_BLACK, TFT_WHITE);
+    tft.setTextSize(2);
+    tft.drawString("READY", 140, 225);
 }
 
 void Display::showWiFiStatus(const char* status) {
@@ -86,10 +90,11 @@ void Display::showWiFiStatus(const char* status) {
     }
     
     // Update status line at bottom
-    tft.fillRect(0, 220, 280, 20, TFT_BLACK);  // Clear status area
+    tft.fillRect(0, 220, 280, 20, TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextDatum(ML_DATUM);
     tft.setTextSize(1);
-    displayText(status, 10, 225);
+    tft.drawString(status, 10, 230);
 }
 
 void Display::showBatteryLevel(int level) {
@@ -113,12 +118,13 @@ void Display::showButtonPressed(const char* buttonName) {
         Serial.printf("[DISPLAY] Button pressed: %s\n", buttonName);
     }
     
-    clear();  // Black background
+    tft.fillScreen(TFT_BLACK);
     
-    // Large button name centered in landscape
+    // Large button name centered
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextDatum(MC_DATUM);
     tft.setTextSize(6);
-    displayCenteredText(buttonName, 100);
+    tft.drawString(buttonName, 140, 120);
 }
 
 void Display::showProcessing(const char* requestType) {
@@ -128,12 +134,13 @@ void Display::showProcessing(const char* requestType) {
         Serial.printf("[DISPLAY] Processing: %s\n", requestType);
     }
     
-    clear();  // Black background
+    tft.fillScreen(TFT_BLACK);
     
-    // Processing message centered in landscape
+    // Processing message centered
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextDatum(MC_DATUM);
     tft.setTextSize(4);
-    displayCenteredText("REQUESTING", 100);
+    tft.drawString("REQUESTING", 140, 120);
 }
 
 void Display::showSuccess(const char* message) {
@@ -143,12 +150,13 @@ void Display::showSuccess(const char* message) {
         Serial.printf("[DISPLAY] Success: %s\n", message);
     }
     
-    clear();  // Black background
+    tft.fillScreen(TFT_BLACK);
     
-    // Success message centered in landscape
+    // Success message centered
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextDatum(MC_DATUM);
     tft.setTextSize(4);
-    displayCenteredText("RECEIVED", 100);
+    tft.drawString("RECEIVED", 140, 120);
 }
 
 void Display::showError(const char* errorMessage) {
@@ -158,13 +166,14 @@ void Display::showError(const char* errorMessage) {
         Serial.printf("[DISPLAY] Error: %s\n", errorMessage);
     }
     
-    clear();  // Black background
+    tft.fillScreen(TFT_BLACK);
     
     // Error message in red
     tft.setTextColor(TFT_RED, TFT_BLACK);
+    tft.setTextDatum(MC_DATUM);
     tft.setTextSize(3);
-    displayCenteredText("PLEASE TRY", 90);
-    // displayCenteredText("AGAIN", 130);
+    tft.drawString("PLEASE TRY", 140, 100);
+    tft.drawString("AGAIN", 140, 140);
 }
 
 void Display::clear() {
@@ -181,21 +190,16 @@ void Display::displayText(const char* text, int x, int y, uint16_t color) {
     if (!initialized) return;
     
     tft.setTextColor(color, TFT_BLACK);
-    tft.setCursor(x, y);
-    tft.print(text);
+    tft.setTextDatum(TL_DATUM);
+    tft.drawString(text, x, y);
 }
 
 void Display::displayCenteredText(const char* text, int y, uint16_t color) {
     if (!initialized) return;
     
     tft.setTextColor(color, TFT_BLACK);
-    
-    // Calculate text width for centering (landscape: 280px width)
-    int textWidth = tft.textWidth(text);
-    int x = (280 - textWidth) / 2;  // Center on 280px width
-    
-    tft.setCursor(x, y);
-    tft.print(text);
+    tft.setTextDatum(MC_DATUM);
+    tft.drawString(text, 140, y);  // Center at x=140 for 280px width
 }
 
 void Display::drawHeader(const char* title) {
@@ -204,13 +208,9 @@ void Display::drawHeader(const char* title) {
     // Draw header bar
     tft.fillRect(0, 0, 280, 30, TFT_WHITE);
     tft.setTextColor(TFT_BLACK, TFT_WHITE);
+    tft.setTextDatum(MC_DATUM);
     tft.setTextSize(2);
-    
-    // Center title in header
-    int textWidth = tft.textWidth(title);
-    int x = (280 - textWidth) / 2;
-    tft.setCursor(x, 8);
-    tft.print(title);
+    tft.drawString(title, 140, 15);
 }
 
 void Display::drawStatus(const char* status, uint16_t color) {
@@ -219,8 +219,9 @@ void Display::drawStatus(const char* status, uint16_t color) {
     // Draw status at bottom
     tft.fillRect(0, 220, 280, 20, TFT_BLACK);
     tft.setTextColor(color, TFT_BLACK);
+    tft.setTextDatum(MC_DATUM);
     tft.setTextSize(1);
-    displayCenteredText(status, 230);
+    tft.drawString(status, 140, 230);
 }
 
 void Display::setBacklight(uint8_t brightness) {
