@@ -51,10 +51,16 @@
 #define COLOR_OFF           0x000000
 
 // System Settings
-#define SERIAL_BAUD         115200
+#define SERIAL_BAUD         9600
 #define BUTTON_DEBOUNCE_MS  50
 #define LED_BRIGHTNESS      50      // 0-255
-#define VIBRATION_DURATION  200     // milliseconds
+#define VIBRATION_DURATION  300     // milliseconds (increased from 200)
+
+// Vibration Settings
+#define VIBRATION_STRONG    400     // Strong pulse duration
+#define VIBRATION_MEDIUM    400     // Medium pulse duration  
+#define VIBRATION_SHORT     400     // Short pulse duration
+#define VIBRATION_GAP       300     // Gap between pulses
 
 // WiFi Settings (update with your credentials)
 #define WIFI_SSID           "YOUR_WIFI_SSID"
