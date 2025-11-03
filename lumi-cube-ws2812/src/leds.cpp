@@ -217,33 +217,54 @@ void LEDs::testSequence() {
 void LEDs::flowingBlueEffect() {
     if (!initialized) return;
     
-    const int cycles = 20;  // 20 cycles over 5 seconds = 250ms per cycle
-    const int delayTime = 125;  // 125ms for each step (250ms total per cycle)
+    const int totalSteps = 100;  // More steps for smoother animation over 5 seconds
+    const int delayTime = 50;    // 50ms per step = 5 seconds total
     
-    for (int cycle = 0; cycle < cycles; cycle++) {
-        // Flow left to right: LED 4 -> 5 -> 6
-        for (int i = LED_BUTTON_START; i < LED_BUTTON_START + LED_BUTTON_COUNT; i++) {
-            // Clear cluster first
-            for (int j = LED_BUTTON_START; j < LED_BUTTON_START + LED_BUTTON_COUNT; j++) {
-                strip.setPixelColor(j, COLOR_OFF);
-            }
-            // Light current LED
-            strip.setPixelColor(i, COLOR_BLUE);
-            strip.show();
-            delay(delayTime);
+    for (int step = 0; step < totalSteps; step++) {
+        // Clear the cluster
+        for (int j = LED_BUTTON_START; j < LED_BUTTON_START + LED_BUTTON_COUNT; j++) {
+            strip.setPixelColor(j, COLOR_OFF);
         }
         
-        // Flow right to left: LED 6 -> 5 -> 4  
-        for (int i = LED_BUTTON_START + LED_BUTTON_COUNT - 2; i >= LED_BUTTON_START; i--) {
-            // Clear cluster first
-            for (int j = LED_BUTTON_START; j < LED_BUTTON_START + LED_BUTTON_COUNT; j++) {
-                strip.setPixelColor(j, COLOR_OFF);
+        // Create flowing effect with multiple LEDs lit
+        float position = (float)step / totalSteps * 4.0;  // 0 to 4 over the animation
+        
+        // Forward flow (0 to 2)
+        if (position <= 2.0) {
+            int centerLED = LED_BUTTON_START + (int)position;
+            float brightness = position - (int)position;  // Fractional part
+            
+            // Light up to 3 LEDs with varying brightness
+            for (int i = 0; i < LED_BUTTON_COUNT; i++) {
+                int ledIndex = LED_BUTTON_START + i;
+                float distance = abs(i - position);
+                
+                if (distance <= 1.0) {
+                    uint8_t intensity = (uint8_t)(255 * (1.0 - distance));
+                    uint32_t color = strip.Color(0, 0, intensity);  // Blue with varying intensity
+                    strip.setPixelColor(ledIndex, color);
+                }
             }
-            // Light current LED
-            strip.setPixelColor(i, COLOR_BLUE);
-            strip.show();
-            delay(delayTime);
         }
+        // Backward flow (2 to 4, which maps to position 2 to 0)
+        else {
+            float backPosition = 4.0 - position;  // 2.0 down to 0.0
+            
+            // Light up to 3 LEDs with varying brightness
+            for (int i = 0; i < LED_BUTTON_COUNT; i++) {
+                int ledIndex = LED_BUTTON_START + i;
+                float distance = abs(i - backPosition);
+                
+                if (distance <= 1.0) {
+                    uint8_t intensity = (uint8_t)(255 * (1.0 - distance));
+                    uint32_t color = strip.Color(0, 0, intensity);  // Blue with varying intensity
+                    strip.setPixelColor(ledIndex, color);
+                }
+            }
+        }
+        
+        strip.show();
+        delay(delayTime);
     }
 }
 

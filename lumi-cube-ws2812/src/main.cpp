@@ -20,7 +20,7 @@ void setup() {
     Serial.println("");
     Serial.println("Complete button feedback sequence:");
     Serial.println("  1. BLUE (1 second) - button pressed");
-    Serial.println("  2. BLUE FLOWING (5 seconds) - processing"); 
+    Serial.println("  2. SEAMLESS BLUE FLOWING (5 seconds) - processing"); 
     Serial.println("  3. GREEN (1 second) - successful");
     Serial.println("  4. WHITE - return to ready");
     Serial.println("  (RED for errors - future implementation)");
