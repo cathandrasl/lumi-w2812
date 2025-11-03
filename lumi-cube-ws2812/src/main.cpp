@@ -3,45 +3,71 @@
 #include "buttons.h"
 #include "vibration.h"
 #include "leds.h"
+#include "display.h"
 
 void setup() {
     Serial.begin(SERIAL_BAUD);
-    Serial.println("=== Lumi Cube MVP - Buttons + Vibration + LEDs Test ===");
+    Serial.println("=== Lumi Cube MVP - Full Integration ===");
     
     // Initialize components
-    LEDs::init();         // LEDs first (includes boot sequence)
+    Display::init();      // Display first (shows boot screen + table info)
+    LEDs::init();         // LEDs second (boot sequence)
     Buttons::init();
     Vibration::init();
     
-    Serial.println("Ready! Press buttons for combined feedback:");
-    Serial.println("  Power LED: Green (on)");
-    Serial.println("  WiFi LED: Red (not connected)");
-    Serial.println("  Button cluster: White (ready)");
-    Serial.println("");
-    Serial.println("Complete button feedback sequence:");
-    Serial.println("  1. BLUE (1 second) - button pressed");
-    Serial.println("  2. SEAMLESS BLUE FLOWING (5 seconds) - processing"); 
-    Serial.println("  3. GREEN (1 second) - successful");
-    Serial.println("  4. WHITE - return to ready");
-    Serial.println("  (RED for errors - future implementation)");
-    Serial.println("Plus vibration patterns: Bill=1x, Menu=2x, Service=3x");
+    Serial.printf("Table %d ready for service!\n", TABLE_NUMBER);
 }
 
 void loop() {
-    // Check buttons and provide combined feedback
+    // Check buttons and provide complete feedback
     if (Buttons::isBillPressed()) {
-        LEDs::billPressed();     // Blue cluster flash
+        // Show button pressed
+        Display::showButtonPressed("BILL");
+        
+        // LED and vibration feedback
+        LEDs::billPressed();     // Blue -> flowing -> green -> white
         Vibration::billFeedback(); // Single vibration
+        
+        // Show processing
+        Display::showProcessing("BILL");
+        delay(4000);  // Show during LED animation
+        
+        // Show success
+        Display::showSuccess("Bill received");
+        delay(2000);
+        
+        // Return to ready
+        Display::showReady();
     }
     
     if (Buttons::isMenuPressed()) {
-        LEDs::menuPressed();     // Orange cluster flash
-        Vibration::menuFeedback(); // Double vibration
+        Display::showButtonPressed("MENU");
+        
+        LEDs::menuPressed();     
+        Vibration::menuFeedback(); 
+        
+        Display::showProcessing("MENU");
+        delay(4000);
+        
+        Display::showSuccess("Menu received");
+        delay(2000);
+        
+        Display::showReady();
     }
     
     if (Buttons::isServicePressed()) {
-        LEDs::servicePressed();  // Green cluster flash
-        Vibration::serviceFeedback(); // Triple vibration
+        Display::showButtonPressed("SERVICE");
+        
+        LEDs::servicePressed();  
+        Vibration::serviceFeedback(); 
+        
+        Display::showProcessing("SERVICE");
+        delay(4000);
+        
+        Display::showSuccess("Service received");
+        delay(2000);
+        
+        Display::showReady();
     }
     
     delay(50); // Small delay for stability

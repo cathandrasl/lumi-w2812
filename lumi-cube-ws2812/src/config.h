@@ -6,20 +6,20 @@
 // ============================================================================
 
 // Button Pin Definitions
-#define BUTTON_BILL_PIN     18    // Button 1: Bill request
-#define BUTTON_MENU_PIN     19    // Button 2: Menu request  
-#define BUTTON_SERVICE_PIN  21    // Button 3: Service request
+#define BUTTON_BILL_PIN     25    // Button 1: Bill request (moved from 18)
+#define BUTTON_MENU_PIN     26    // Button 2: Menu request (moved from 19)
+#define BUTTON_SERVICE_PIN  27    // Button 3: Service request (moved from 21)
 
 // Display Pin Definitions (ST7789V - 1.69" 240x280)
-#define TFT_MOSI    13
-#define TFT_SCLK    14
-#define TFT_CS      15
-#define TFT_DC      27
-#define TFT_RST     12
-#define TFT_BL      32   // Backlight
+#define TFT_MOSI    23   // SDA
+#define TFT_SCLK    18   // SCL
+#define TFT_CS      5    // CS
+#define TFT_DC      2    // DC
+#define TFT_RST     4    // RES
+#define TFT_BL      15   // BLK
 
 // LED Strip Pin Definition (WS2812)
-#define LED_STRIP_PIN       2
+#define LED_STRIP_PIN       32   // Moved from GPIO 2 (conflicts with TFT_DC)
 #define LED_COUNT           7
 
 // LED Assignments (0-based indexing)
@@ -40,7 +40,7 @@
 #define BUTTON_LED_COUNT    3    // 3 LEDs in button cluster
 
 // Vibration Motor Pin Definition
-#define VIBRATION_PIN       4
+#define VIBRATION_PIN       33   // Moved from GPIO 4 (conflicts with TFT_RST)
 
 // LED Colors (RGB values for WS2812)
 #define COLOR_WHITE         0xFFFFFF
@@ -51,16 +51,20 @@
 #define COLOR_OFF           0x000000
 
 // System Settings
-#define SERIAL_BAUD         9600
+#define SERIAL_BAUD         115200
 #define BUTTON_DEBOUNCE_MS  50
 #define LED_BRIGHTNESS      50      // 0-255
 #define VIBRATION_DURATION  300     // milliseconds (increased from 200)
 
 // Vibration Settings
 #define VIBRATION_STRONG    400     // Strong pulse duration
-#define VIBRATION_MEDIUM    400     // Medium pulse duration  
-#define VIBRATION_SHORT     400     // Short pulse duration
-#define VIBRATION_GAP       300     // Gap between pulses
+#define VIBRATION_MEDIUM    250     // Medium pulse duration  
+#define VIBRATION_SHORT     150     // Short pulse duration
+#define VIBRATION_GAP       100     // Gap between pulses
+
+// Table Settings
+#define TABLE_NUMBER        12      // Change this for each cube
+#define RESERVATION_STATUS  false   // true = reserved, false = available
 
 // WiFi Settings (update with your credentials)
 #define WIFI_SSID           "YOUR_WIFI_SSID"
@@ -68,7 +72,7 @@
 #define API_ENDPOINT        "http://192.168.1.100:8000/api/requests"
 
 // Display Settings
-#define DISPLAY_ROTATION    0       // 0, 1, 2, or 3
+#define DISPLAY_ROTATION    1       // 1 = landscape (90 degrees)
 #define BACKLIGHT_PWM       200     // 0-255
 
 // Debug Settings

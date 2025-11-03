@@ -1,67 +1,60 @@
 # Lumi Cube MVP - Wiring Guide
 
-## 🔌 Current Component Connections
+## 🔌 CORRECTED Component Connections
 
 ### **Buttons (Tactile Switches)**
 ```
-Button 1 (Bill)    → GPIO 18 → GND
-Button 2 (Menu)    → GPIO 19 → GND  
-Button 3 (Service) → GPIO 21 → GND
+Button 1 (Bill)    → GPIO 25 → GND  (CHANGED from 18)
+Button 2 (Menu)    → GPIO 26 → GND  (CHANGED from 19)
+Button 3 (Service) → GPIO 27 → GND  (CHANGED from 21)
 ```
 - Uses internal pull-ups (no external resistors needed)
 - Button press = LOW signal
 
-### **Vibration Motor**
+### **1.69" TFT Display (ST7789V) - CONFIRMED WORKING**
 ```
-Vibration Motor VCC → 3.3V (or 5V for stronger vibration)
-Vibration Motor GND → GND
-Vibration Motor IN  → GPIO 4
+VCC → 3.3V
+GND → GND
+SCL → GPIO 18 (SCLK)
+SDA → GPIO 23 (MOSI)
+RES → GPIO 4 (Reset)
+DC → GPIO 2 (Data/Command)
+CS → GPIO 5 (Chip Select)
+BLK → GPIO 15 (Backlight)
 ```
-- **Recommended**: Use 5V for stronger vibration
-- Current draw: ~60mA operating, ~90mA startup
-
-## 📋 Component Status
-
-| Component | Status | GPIO | Notes |
-|-----------|--------|------|-------|
-| Bill Button | ✅ Working | 18 | Triggers single vibration |
-| Menu Button | ✅ Working | 19 | Triggers double vibration |
-| Service Button | ✅ Working | 21 | Triggers triple vibration |
-| Vibration Motor | ✅ Working | 4 | Connected to 5V for stronger pulse |
-
-## 🚀 Next Components to Wire
 
 ### **WS2812 LED Strip (7 LEDs)**
 ```
 LED Strip VCC → 5V
 LED Strip GND → GND
-LED Strip DIN → GPIO 2
+LED Strip DIN → GPIO 32  (CHANGED from 2 - was conflicting with display)
 ```
 
-### **1.69" TFT Display (ST7789V)**
+### **Vibration Motor**
 ```
-Display VCC → 3.3V
-Display GND → GND
-Display SCK → GPIO 14
-Display MOSI → GPIO 13
-Display RES → GPIO 12
-Display DC → GPIO 27
-Display CS → GPIO 15
-Display BLK → GPIO 32
+Vibration Motor VCC → 5V
+Vibration Motor GND → GND
+Vibration Motor IN  → GPIO 33  (CHANGED from 4 - was conflicting with display)
 ```
 
-## ⚡ Power Requirements
+## 🚨 **PIN CONFLICTS FIXED:**
+- **GPIO 18**: Was used for both buttons and display - now display only
+- **GPIO 2**: Was used for both LEDs and display - now display only  
+- **GPIO 4**: Was used for both vibration and display - now display only
 
-| Component | Voltage | Current |
-|-----------|---------|---------|
-| ESP32 | 3.3V | ~240mA |
-| Vibration Motor | 5V | ~60-90mA |
-| LED Strip (7 LEDs) | 5V | ~420mA (max) |
-| TFT Display | 3.3V | ~20-50mA |
-| **Total** | **Mixed** | **~750mA max** |
+## 📋 Component Status
 
-## 🔧 Tips
+| Component | Status | GPIO | Notes |
+|-----------|--------|------|-------|
+| Bill Button | ⚠️ **REWIRE** | 25 | Was GPIO 18 |
+| Menu Button | ⚠️ **REWIRE** | 26 | Was GPIO 19 |
+| Service Button | ⚠️ **REWIRE** | 27 | Was GPIO 21 |
+| Display | ✅ Working | 18,23,4,2,5,15 | Confirmed wiring |
+| LED Strip | ⚠️ **REWIRE** | 32 | Was GPIO 2 |
+| Vibration Motor | ⚠️ **REWIRE** | 33 | Was GPIO 4 |
 
-- **Vibration too weak?** → Connect VCC to 5V instead of 3.3V
-- **Button bouncing?** → Software debouncing handles most cases
-- **Power issues?** → Use external 5V power supply for motors and LEDs
+## 🔧 **IMMEDIATE ACTION NEEDED:**
+1. **Rewire buttons** to GPIO 25, 26, 27
+2. **Rewire LED strip** to GPIO 32
+3. **Rewire vibration motor** to GPIO 33
+4. **Upload test code** to verify all components work
