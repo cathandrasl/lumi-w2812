@@ -4,6 +4,7 @@
 #include "vibration.h"
 #include "leds.h"
 #include "display.h"
+#include "wifi_manager.h"
 
 void setup() {
     Serial.begin(SERIAL_BAUD);
@@ -14,6 +15,9 @@ void setup() {
     LEDs::init();         // LEDs second (boot sequence)
     Buttons::init();
     Vibration::init();
+    
+    // Connect to WiFi
+    WiFiManager::init();
     
     Serial.printf("Table %d ready for service!\n", TABLE_NUMBER);
 }

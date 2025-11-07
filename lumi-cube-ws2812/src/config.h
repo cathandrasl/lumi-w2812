@@ -29,15 +29,15 @@
 #define LED_RESERVED_1      3    // LED 4: Reserved
 
 // Button Feedback LED Cluster (LEDs 5-7 operate as a group)
-#define LED_BUTTON_START    4    // LED 5: Start of button cluster
-#define LED_BUTTON_COUNT    3    // LEDs 5,6,7 for button feedback
+#define LED_BUTTON_START    3    // LED 5: Start of button cluster
+#define LED_BUTTON_COUNT    4    // LEDs 5,6,7 for button feedback
 #define LED_BILL            4    // LED 5: Bill button feedback
 #define LED_MENU            5    // LED 6: Menu button feedback  
 #define LED_SERVICE         6    // LED 7: Service button feedback
 
 // LED Clusters
-#define BUTTON_LED_START    4    // LEDs 5-7 (indices 4-6) work as cluster
-#define BUTTON_LED_COUNT    3    // 3 LEDs in button cluster
+#define BUTTON_LED_START    3    // LEDs 5-7 (indices 4-6) work as cluster
+#define BUTTON_LED_COUNT    4    // 3 LEDs in button cluster
 
 // Vibration Motor Pin Definition
 #define VIBRATION_PIN       33   // Moved from GPIO 4 (conflicts with TFT_RST)
@@ -67,8 +67,8 @@
 #define RESERVATION_STATUS  false   // true = reserved, false = available
 
 // WiFi Settings (update with your credentials)
-#define WIFI_SSID           "YOUR_WIFI_SSID"
-#define WIFI_PASSWORD       "YOUR_WIFI_PASSWORD"
+#define WIFI_SSID           "GALAXY S22 ULTRA 5G"
+#define WIFI_PASSWORD       "7and7is14"
 #define API_ENDPOINT        "http://192.168.1.100:8000/api/requests"
 
 // Display Settings
